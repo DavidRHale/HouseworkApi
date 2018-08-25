@@ -1,0 +1,9 @@
+HouseworkApi/bin/*
+HouseworkApi/obj/*
+
+HouseworkApiTests/bin/*
+HouseworkApiTests/obj/*
+
+HouseworkApi/bin/Debug/netcoreapp2.0/HouseworkApi.dll
+
+.vscode/*
