@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HouseworkApi.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HouseworkApi.Controllers
@@ -13,7 +14,8 @@ namespace HouseworkApi.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok("Hello");
+            var ret = new RoomViewModel();
+            return Ok(new List<RoomViewModel>(){ret});
         }
 
         // // GET api/values/5

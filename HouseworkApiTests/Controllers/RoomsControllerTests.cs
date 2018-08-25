@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 // using AutoMapper;
 using HouseworkApi.Controllers;
 using HouseworkApi.Data;
-// using HouseworkApi.ViewModels;
+using HouseworkApi.ViewModels;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -17,18 +17,29 @@ namespace HouseworkApiTests
   public class RoomsControllerTests
   {
     [Fact]
-    public void GetAllRooms_ReturnsOkResult_WithRoomsAsViewModels_WhenFound()
+    public void GetAllRooms_ReturnsOkObjectResult_WhenFound()
+    {
+      var controller = new RoomsController();
+
+      var result = controller.Get();
+
+      result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public void GetAllRooms_ReturnsRoomsViewModels_FromRepository_WhenFound()
     {
       var controller = new RoomsController();
 
       var result = controller.Get();
 
       var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+      var value = okResult.Value.Should().BeAssignableTo<IEnumerable<RoomViewModel>>().Subject;
+    }
+
+    
 
 
-
-
-      // var value = okResult.Value.Should().BeAssignableTo<IEnumerable<RoomViewModel>>().Subject;
 
 
 
@@ -50,6 +61,5 @@ namespace HouseworkApiTests
       // var value = okResult.Value.Should().BeAssignableTo<IEnumerable<RoomViewModel>>().Subject;
 
       // mockRepo.Verify(r => r.GetAllCategories(), Times.Once);
-    }
   }
 }
