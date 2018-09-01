@@ -149,5 +149,62 @@ namespace HouseworkApiTests
       var viewModel = createdResult.Value.Should().BeAssignableTo<RoomViewModel>().Subject;
       viewModel.Name.Should().Be("Kitchen");
     }
+
+    [Fact]
+    public async void PostRoom_AddsEntityAndSavesRepo_WhenSuccessful()
+    {
+      var result = await controller.Post(kitchenViewModel);
+
+      mockRepo.Verify(r => r.AddEntity(It.IsAny<Room>()), Times.Once);
+      mockRepo.Verify(r => r.SaveAllAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async void PostRoom_ReturnsStatus500_WhenExceptionThrown()
+    {
+      mockRepo.Setup(r => r.AddEntity(It.IsAny<Room>()))
+              .Throws(new Exception());
+
+      var result = await controller.Post(kitchenViewModel);
+
+      var statusResult = result.Should().BeAssignableTo<StatusCodeResult>().Subject;
+      statusResult.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
+    public async void PostRoom_ReturnsBadRequest_WhenTryingToPostInvalidRoom()
+    {
+      controller.ModelState.AddModelError("Name", "Name is required");
+      kitchenViewModel.Name = "";
+
+      var result = await controller.Post(kitchenViewModel);
+
+      var badResult = result.Should().BeAssignableTo<BadRequestObjectResult>().Subject;
+      var modelState = badResult.Value.Should().BeAssignableTo<SerializableError>().Subject;
+      modelState["Name"].Should().Equals("Name is required");
+    }
+
+    [Fact]
+    public async void PostRoom_DoesNotAddRoom_WhenTryingToPostInvalidRoom()
+    {
+      controller.ModelState.AddModelError("Name", "Name is required");
+      kitchenViewModel.Name = "";
+
+      var result = await controller.Post(kitchenViewModel);
+
+      mockRepo.Verify(r => r.AddEntity(It.IsAny<Room>()), Times.Never);
+      mockRepo.Verify(r => r.SaveAllAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async void PostRoom_ReturnsBadRequest_WhenRepoFailsToAddRoom()
+    {
+      mockRepo.Setup(r => r.SaveAllAsync())
+              .Returns(Task.FromResult(false));
+
+      var result = await controller.Post(kitchenViewModel);
+
+      result.Should().BeOfType<BadRequestResult>();
+    }
   }
 }
