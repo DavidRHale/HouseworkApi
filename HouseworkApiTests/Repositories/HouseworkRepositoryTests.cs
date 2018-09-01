@@ -18,6 +18,22 @@ namespace HouseworkApiTests
       rooms.Count.Should().Be(3);
     }
 
+    [Fact]
+    public async void GetRoomsById()
+    {
+      var repo = GetInMemoryHouseworkRepository();
+
+      var id = 88;
+      var newRoom = new Room() { Name = "Bathroom", Id = id };
+
+      repo.AddEntity(newRoom);
+      var saved = await repo.SaveAllAsync();
+      saved.Should().Be(true);
+
+      var room = repo.GetRoomById(id);
+      room.Name.Should().Be("Bathroom");
+    }
+
     private IHouseworkRepository GetInMemoryHouseworkRepository()
     {
         DbContextOptions<HouseworkApiContext> options;

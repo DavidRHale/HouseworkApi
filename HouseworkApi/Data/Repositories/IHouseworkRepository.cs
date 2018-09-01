@@ -12,5 +12,6 @@ namespace HouseworkApi.Data
 
     // Rooms
     IEnumerable<Room> GetAllRooms();
+    Room GetRoomById(int id);
   }
 }

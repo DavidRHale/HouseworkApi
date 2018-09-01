@@ -18,6 +18,13 @@ namespace HouseworkApi.Data
     {
       return _context.Rooms.ToList();
     }
+    public Room GetRoomById(int id)
+    {
+      return _context
+        .Rooms
+        .Where(r => r.Id == id)
+        .FirstOrDefault();
+    }
 
     // ------------------------------------------------ GENERAL ------------------------------------------------
     public void AddEntity(object entity)
