@@ -210,7 +210,7 @@ namespace HouseworkApiTests
     }
 
     [Fact]
-    public async void DeleteRoom_ShouldReturnNoContent_WhenSuccessful()
+    public async void PuRoom_ShouldReturnNoContent_WhenSuccessful()
     {
       mockRepo.Setup(r => r.GetRoomById(kitchenId))
               .Returns(kitchen);
@@ -267,6 +267,96 @@ namespace HouseworkApiTests
 
       var statusResult = result.Should().BeAssignableTo<StatusCodeResult>().Subject;
       statusResult.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
+    public async void PutRoom_ReturnsOk_WhenSuccessful()
+    {
+      mockMapper.Setup(m => m.Map<Room>(It.IsAny<RoomViewModel>()))
+                .Returns(kitchen);
+      mockMapper.Setup(m => m.Map<RoomViewModel>(It.IsAny<Room>()))
+                .Returns(kitchenViewModel);
+      mockRepo.Setup(r => r.GetRoomById(kitchenId))
+              .Returns(kitchen);
+      mockRepo.Setup(r => r.SaveAllAsync())
+              .Returns(Task.FromResult(true));
+
+      var result = await controller.Put(kitchenId, kitchenViewModel);
+
+      var okResult = result.Should().BeAssignableTo<OkObjectResult>().Subject;
+      var viewModel = okResult.Value.Should().BeAssignableTo<RoomViewModel>().Subject;
+      viewModel.Name.Should().Be("Kitchen");
+    }
+
+    [Fact]
+    public async void PutRoom_ShouldSaveRepo_WhenSuccessful()
+    {
+      mockRepo.Setup(r => r.GetRoomById(kitchenId))
+              .Returns(kitchen);
+
+      var result = await controller.Put(kitchenId, kitchenViewModel);
+
+      mockRepo.Verify(r => r.SaveAllAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async void PutRoom_ShouldReturnNotFound_WhenRoomNotFound()
+    {
+      mockRepo.Setup(r => r.GetRoomById(kitchenId))
+              .Returns(nullRoom);
+
+      var result = await controller.Put(543, new RoomViewModel() { Name = "" });
+
+      result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async void PutRoom_ShouldReturnStatus500_WhenExceptionThrown()
+    {
+      mockRepo.Setup(r => r.GetRoomById(It.IsAny<int>()))
+              .Throws(new Exception());
+
+      var result = await controller.Put(kitchenId, kitchenViewModel);
+
+      var statusResult = result.Should().BeAssignableTo<StatusCodeResult>().Subject;
+      statusResult.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
+    public async void PutRoom_ShoulReturnBadRequest_WhenTryingToPutInvalidRoom()
+    {
+      controller.ModelState.AddModelError("Name", "Name is required");
+      kitchenViewModel.Name = "";
+
+      var result = await controller.Put(kitchenId, new RoomViewModel() { Name = "" });
+
+      var badResult = result.Should().BeAssignableTo<BadRequestObjectResult>().Subject;
+      var modelState = badResult.Value.Should().BeAssignableTo<SerializableError>().Subject;
+      modelState["Name"].Should().Equals("Name is required");
+    }
+
+    [Fact]
+    public async void PutRoom_ShouldNotAddRoom_WhenTryingToPostInvalidRoom()
+    {
+      controller.ModelState.AddModelError("Name", "Name is required");
+      kitchenViewModel.Name = "";
+
+      var result = await controller.Put(kitchenId, new RoomViewModel() { Name = "" });
+
+      mockRepo.Verify(r => r.SaveAllAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async void PutRoom_ShouldReturnBadRequest_WhenRepoFailsToAddRoom()
+    {
+      mockRepo.Setup(r => r.SaveAllAsync())
+              .Returns(Task.FromResult(false));
+      mockRepo.Setup(r => r.GetRoomById(kitchenId))
+              .Returns(kitchen);
+
+      var result = await controller.Put(kitchenId, new RoomViewModel() { Name = "" });
+
+      result.Should().BeOfType<BadRequestResult>();
     }
   }
 }
