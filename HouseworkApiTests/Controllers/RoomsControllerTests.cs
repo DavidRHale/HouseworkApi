@@ -32,11 +32,13 @@ namespace HouseworkApiTests
       mockRepo = new Mock<IHouseworkRepository>();
       mockMapper = new Mock<IMapper>();
 
-      kitchen = new Room() {
+      kitchen = new Room()
+      {
         Id = kitchenId,
         Name = "Kitchen"
       };
-      kitchenViewModel = new RoomViewModel() {
+      kitchenViewModel = new RoomViewModel()
+      {
         RoomId = kitchenId,
         Name = "Kitchen"
       };
@@ -45,10 +47,10 @@ namespace HouseworkApiTests
     }
 
     [Fact]
-    public void GetAllRooms_ReturnsOkObjectResult_WhenFound()
+    public void Exception()
     {
       mockRepo.Setup(r => r.GetAllRooms())
-              .Returns(new List<Room>() {kitchen});
+              .Returns(new List<Room>() { kitchen });
 
       var result = controller.Get();
 
@@ -59,9 +61,9 @@ namespace HouseworkApiTests
     public void GetAllRooms_ReturnsRoomsViewModels_FromRepository_WhenFound()
     {
       mockRepo.Setup(r => r.GetAllRooms())
-              .Returns(new List<Room>() {kitchen});
+              .Returns(new List<Room>() { kitchen });
       mockMapper.Setup(m => m.Map<List<RoomViewModel>>(It.IsAny<List<Room>>()))
-                .Returns(new List<RoomViewModel>() {kitchenViewModel});
+                .Returns(new List<RoomViewModel>() { kitchenViewModel });
 
       var result = controller.Get();
 
@@ -70,8 +72,8 @@ namespace HouseworkApiTests
     }
 
     [Fact]
-    public void GetAllRooms_ReturnsNotFoundResult_WithoutRooms_WhenNotFound()
-    {  
+    public void GetAllRooms_ReturnsBadRequestResult_WithoutRooms_WhenNotFound()
+    {
       mockRepo.Setup(r => r.GetAllRooms())
                            .Returns(new List<Room>());
 
@@ -86,8 +88,8 @@ namespace HouseworkApiTests
       mockRepo.Setup(r => r.GetAllRooms()).Throws(new Exception());
 
       var result = controller.Get();
-      
-      mockRepo.Verify(r => r.GetAllRooms(), Times.Once);  
+
+      mockRepo.Verify(r => r.GetAllRooms(), Times.Once);
       var statusResult = result.Should().BeOfType<StatusCodeResult>().Subject;
       statusResult.StatusCode.Should().Be(500);
     }
@@ -205,6 +207,66 @@ namespace HouseworkApiTests
       var result = await controller.Post(kitchenViewModel);
 
       result.Should().BeOfType<BadRequestResult>();
+    }
+
+    [Fact]
+    public async void DeleteRoom_ShouldReturnNoContent_WhenSuccessful()
+    {
+      mockRepo.Setup(r => r.GetRoomById(kitchenId))
+              .Returns(kitchen);
+      mockRepo.Setup(r => r.SaveAllAsync())
+              .Returns(Task.FromResult(true));
+
+      var result = await controller.Delete(kitchenId);
+
+      result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public async void DeleteRoom_ShouldDeleteRoom_WhenRoomFound()
+    {
+      mockRepo.Setup(r => r.GetRoomById(kitchenId))
+              .Returns(kitchen);
+
+      var result = await controller.Delete(kitchenId);
+
+      mockRepo.Verify(r => r.Delete(kitchen), Times.Once);
+      mockRepo.Verify(r => r.SaveAllAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async void DeleteRoom_ShouldReturnNotFound_WhenRoomNotFound()
+    {
+      mockRepo.Setup(r => r.GetRoomById(kitchenId))
+              .Returns(nullRoom);
+
+      var result = await controller.Delete(kitchenId);
+
+      result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async void DeleteRoom_ShouldReturnBadResult_IfRoomFailsToSave()
+    {
+      mockRepo.Setup(r => r.GetRoomById(kitchenId))
+              .Returns(kitchen);
+      mockRepo.Setup(r => r.SaveAllAsync())
+              .Returns(Task.FromResult(false));
+
+      var result = await controller.Delete(kitchenId);
+
+      result.Should().BeOfType<BadRequestResult>();
+    }
+
+    [Fact]
+    public async void DeleteRoom_ShouldReturnStatusCode500_IfExceptionThrown()
+    {
+      mockRepo.Setup(r => r.GetRoomById(kitchenId)).Throws(new Exception());
+
+      var result = await controller.Delete(kitchenId);
+
+      var statusResult = result.Should().BeAssignableTo<StatusCodeResult>().Subject;
+      statusResult.StatusCode.Should().Be(500);
     }
   }
 }

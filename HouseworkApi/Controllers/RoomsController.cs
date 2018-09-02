@@ -15,12 +15,12 @@ namespace HouseworkApi.Controllers
     private IHouseworkRepository _repo;
     private IMapper _mapper;
 
-    public RoomsController(IHouseworkRepository repo, IMapper mapper) 
+    public RoomsController(IHouseworkRepository repo, IMapper mapper)
     {
       _repo = repo;
       _mapper = mapper;
     }
-    
+
     // GET api/rooms
     [HttpGet]
     public IActionResult Get()
@@ -29,13 +29,13 @@ namespace HouseworkApi.Controllers
       {
         var rooms = _repo.GetAllRooms().ToList();
 
-        if (!rooms.Any()) 
+        if (!rooms.Any())
         {
           return NotFound();
         }
 
         var viewModels = _mapper.Map<List<RoomViewModel>>(rooms);
-        return Ok(viewModels);  
+        return Ok(viewModels);
       }
       catch (Exception)
       {
@@ -51,7 +51,8 @@ namespace HouseworkApi.Controllers
       {
         var room = _repo.GetRoomById(id);
 
-        if (room == null) {
+        if (room == null)
+        {
           return NotFound();
         }
 
