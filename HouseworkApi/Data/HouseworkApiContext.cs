@@ -9,5 +9,6 @@ namespace HouseworkApi.Data
         }
 
     public DbSet<Room> Rooms { get; set; }
+    public DbSet<Chore> Chores { get; set; }
   }
 }
