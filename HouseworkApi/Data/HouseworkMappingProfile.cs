@@ -10,6 +10,10 @@ namespace HouseworkApi.Data
       CreateMap<Room, RoomViewModel>()
         .ForMember(rvm => rvm.RoomId, ex => ex.MapFrom(r => r.Id))
         .ReverseMap();
+
+      CreateMap<Chore, ChoreViewModel>()
+        .ForMember(cvm => cvm.ChoreId, ex => ex.MapFrom(c => c.Id))
+        .ReverseMap();
     }
   }
 }

@@ -18,11 +18,26 @@ namespace HouseworkApi.Data
     {
       return _context.Rooms.ToList();
     }
+    
     public Room GetRoomById(int id)
     {
       return _context
         .Rooms
         .Where(r => r.Id == id)
+        .FirstOrDefault();
+    }
+
+    // ------------------------------------------------ CHORES ------------------------------------------------
+    public IEnumerable<Chore> GetAllChores()
+    {
+      return _context.Chores.ToList();      
+    }
+
+    public Chore GetChoreById(int id)
+    {
+      return _context
+        .Chores
+        .Where(c => c.Id == id)
         .FirstOrDefault();
     }
 

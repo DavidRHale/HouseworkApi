@@ -47,7 +47,7 @@ namespace HouseworkApiTests
     }
 
     [Fact]
-    public void Exception()
+    public void GetAllRooms_ShouldReturnOk_WhenSuccessful()
     {
       mockRepo.Setup(r => r.GetAllRooms())
               .Returns(new List<Room>() { kitchen });
@@ -106,9 +106,9 @@ namespace HouseworkApiTests
 
       mockRepo.Verify(r => r.GetRoomById(kitchenId), Times.Once);
       var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-      var RoomViewModel = okResult.Value.Should().BeAssignableTo<RoomViewModel>().Subject;
-      RoomViewModel.Name.Should().Be(kitchen.Name);
-      RoomViewModel.RoomId.Should().Be(kitchenId);
+      var roomViewModel = okResult.Value.Should().BeAssignableTo<RoomViewModel>().Subject;
+      roomViewModel.Name.Should().Be(kitchen.Name);
+      roomViewModel.RoomId.Should().Be(kitchenId);
     }
 
     [Fact]
@@ -210,7 +210,7 @@ namespace HouseworkApiTests
     }
 
     [Fact]
-    public async void PuRoom_ShouldReturnNoContent_WhenSuccessful()
+    public async void DeleteRoom_ShouldReturnNoContent_WhenSuccessful()
     {
       mockRepo.Setup(r => r.GetRoomById(kitchenId))
               .Returns(kitchen);
