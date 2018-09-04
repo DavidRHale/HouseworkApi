@@ -277,5 +277,84 @@ namespace HouseworkApiTests.Controllers
       var statusResult = result.Should().BeAssignableTo<StatusCodeResult>().Subject;
       statusResult.StatusCode.Should().Be(500);
     }
+
+    [Fact]
+    public async void PutChore_ReturnsOk_WhenSuccessful()
+    {
+      mockMapper.Setup(m => m.Map<Chore>(It.IsAny<ChoreViewModel>()))
+                .Returns(mop);
+      mockMapper.Setup(m => m.Map<ChoreViewModel>(It.IsAny<Chore>()))
+                .Returns(mopViewModel);
+      mockRepo.Setup(r => r.GetChoreById(mopId))
+              .Returns(mop);
+      mockRepo.Setup(r => r.SaveAllAsync())
+              .Returns(Task.FromResult(true));
+
+      var result = await controller.Put(mopId, mopViewModel);
+
+      var okResult = result.Should().BeAssignableTo<OkObjectResult>().Subject;
+      var viewModel = okResult.Value.Should().BeAssignableTo<ChoreViewModel>().Subject;
+      viewModel.Should().Be(mopViewModel);
+    }
+
+    [Fact]
+    public async void PutChore_ShouldSaveRepo_WhenSuccessful()
+    {
+      mockRepo.Setup(r => r.GetChoreById(mopId))
+              .Returns(mop);
+
+      var result = await controller.Put(mopId, mopViewModel);
+
+      mockRepo.Verify(r => r.SaveAllAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async void PutChore_ShouldReturnBadRequest_WhenRepoFailsToAddChore()
+    {
+      mockRepo.Setup(r => r.SaveAllAsync())
+              .Returns(Task.FromResult(false));
+      mockRepo.Setup(r => r.GetChoreById(mopId))
+              .Returns(mop);
+
+      var result = await controller.Put(mopId, new ChoreViewModel() { Name = "" });
+
+      result.Should().BeOfType<BadRequestResult>();
+    }
+
+    [Fact]
+    public async void PutChore_ShoulReturnBadRequest_WhenTryingToPutInvalidChore()
+    {
+      controller.ModelState.AddModelError("Name", "Name is required");
+      mopViewModel.Name = "";
+
+      var result = await controller.Put(mopId, new ChoreViewModel() { Name = "" });
+
+      var badResult = result.Should().BeAssignableTo<BadRequestObjectResult>().Subject;
+      var modelState = badResult.Value.Should().BeAssignableTo<SerializableError>().Subject;
+      modelState["Name"].Should().Equals("Name is required");
+    }
+
+    [Fact]
+    public async void PutChore_ShouldReturnNotFound_WhenChoreNotFound()
+    {
+      mockRepo.Setup(r => r.GetChoreById(543))
+              .Returns(nullChore);
+
+      var result = await controller.Put(543, new ChoreViewModel() { Name = "" });
+
+      result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async void PutChore_ShouldReturnStatus500_WhenExceptionThrown()
+    {
+      mockRepo.Setup(r => r.GetChoreById(It.IsAny<int>()))
+              .Throws(new Exception());
+
+      var result = await controller.Put(mopId, mopViewModel);
+
+      var statusResult = result.Should().BeAssignableTo<StatusCodeResult>().Subject;
+      statusResult.StatusCode.Should().Be(500);
+    }
   }
 }
